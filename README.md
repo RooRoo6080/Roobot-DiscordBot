@@ -12,3 +12,4 @@ Features:
 * use ```_poll``` question: option; option; etc. (up to 10)
 * use ```_2048``` to play 2048
 * use ```_chat``` to talk to OpenAI
+... and more
