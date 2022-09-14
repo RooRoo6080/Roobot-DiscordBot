@@ -1,7 +1,7 @@
 # Roobot-DiscordBot
 A python-based Discord bot that can play games and integrate with OpenAI for a chat bot.
 
-~ Current version is outdated - will upload newest soon ~
+## Current version is outdated - will upload newest soon
 
 Features:
 
