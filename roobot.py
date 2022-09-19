@@ -2,8 +2,7 @@ import discord
 import random
 from random_words import RandomWords
 import time
-
-# OUTDATED CODE - UPDATE SOON
+import openai
 
 intents = discord.Intents.default()
 intents.members = True
@@ -65,7 +64,6 @@ async def indexAll(list, input):
         count += 1
     return r
 
-
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
@@ -97,8 +95,8 @@ async def on_message(message):
                                        "hangman \nuse _poll question: option; option; etc. (up to 10) \nuse _2048 to play 2048"
                                        "\n\nuse _feedback and then your feedback to help me improve this bot!"
                                        "\nuse _share to receive the link to add this bot to your server"
-                                       "\n\n\nDISCLAIMER: This bot may not be active all the time as I do not "
-                                       "have a server to run it on.\n\nOther features:\nthe bot logs when someone leaves the server"
+                                       "\n\n\nDISCLAIMER: This bot spams messages so use it in a dedicated channel or make one."
+                                       "\n\nOther features:\nthe bot logs when someone leaves the server"
                                        , color=0xFF2C3B)
             await message.channel.send(embed=embed)
 
@@ -219,7 +217,7 @@ async def on_message(message):
             percent = str(per) + ' percent correct'
             characters = str(len(X)) + ' characters or 5 words'
             wrongCount = str(wrong_count) + ' wrong characters'
-            wpm = str(((len(X) / 5) - wrong_count) / ((end - start) / 60)) + ' is your Net WPM / Score'
+            wpm = str(((len(X) / 5) - wrong_count) // ((end - start) / 60)) + ' is your Net WPM / Score'
             result = seconds + "\n" + percent + "\n" + characters + "\n" + wrongCount + "\n" + wpm
             await message.channel.send(result)
 
@@ -382,4 +380,42 @@ async def on_message(message):
                     await channel.send("------- YOU LOST! -------")
                     await score(square)
                     break
-client.run("your token here")
+        elif message.content.startswith("_."):
+            if len(message.content) > 2:
+                await message.channel.send(message.content[2:])
+            await message.delete()
+        elif message.content.startswith("_chat"):
+            openai.organization = "ORG KEY"
+            openai.api_key = "API KEY"
+            prompt = ""
+            promptElements = ["The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, polite, and very friendly.\n", "\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help you today?", "", "\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help you today?"]
+            prevRes = ""
+            stop = False
+            await message.channel.send("Hi\nUse 'quit' to quit\nthe chat times out in 30 seconds if you don't respond.")
+            while stop == False:
+                try:
+                    newMsg = await client.wait_for('message', check=lambda check: check.author == message.author and check.channel == message.channel, timeout=30)
+                except Exception:
+                    print("caught")
+                    stop = True
+                else:
+                    if newMsg.content.lower() == "quit":
+                        break
+                    with open('/home/reuel/python/rblog.txt', 'a') as f:
+                        f.write('\n' + newMsg.content + ' by ' + str(client.get_user(message.author.id)) + ' id:' + str(message.author.id))
+                    promptElements[2] = promptElements[3] + prevRes
+                    promptElements[3] = "\nHuman:" + newMsg.content + "\nAI:"
+                    response = openai.Completion.create(
+                        engine="davinci",
+                        prompt="".join(promptElements),
+                        temperature=0.9,
+                        max_tokens=60,
+                        top_p=1,
+                        frequency_penalty=0.0,
+                        presence_penalty=0.6,
+                        stop=["\n", " Human:", " AI:"]
+                    )
+                    prevRes = response.choices[0].text
+                    await message.channel.send(prevRes)
+
+client.run('DISCORD BOT KEY')
