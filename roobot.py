@@ -384,7 +384,7 @@ async def on_message(message):
             if len(message.content) > 2:
                 await message.channel.send(message.content[2:])
             await message.delete()
-        elif message.content.startswith("_chat"):
+        elif message.content.startswith("_chat") and message.author.id != 0:
             openai.organization = "ORG KEY"
             openai.api_key = "API KEY"
             prompt = ""
@@ -401,8 +401,6 @@ async def on_message(message):
                 else:
                     if newMsg.content.lower() == "quit":
                         break
-                    with open('/home/reuel/python/rblog.txt', 'a') as f:
-                        f.write('\n' + newMsg.content + ' by ' + str(client.get_user(message.author.id)) + ' id:' + str(message.author.id))
                     promptElements[2] = promptElements[3] + prevRes
                     promptElements[3] = "\nHuman:" + newMsg.content + "\nAI:"
                     response = openai.Completion.create(
